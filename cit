@@ -21,6 +21,9 @@ DESCPOSITION = 6
 # Version control
 VCS = 'git'
 
+# Text editor
+EDITOR = 'vim'
+
 def timeI(x):
 	return time.strftime("%d %b %Y @ %H:%M", time.localtime(int(x)))
 
@@ -91,6 +94,19 @@ def upVoteIssue(issue):
 def downVoteIssue(issue):
 	voteIssue('-', issue)
 
+def editIssue(issue):
+	(cn, c) = connectDB()
+	c.execute('select * from issues where id = ' + issue)
+	i = c.fetchone()
+	f = tempfile.NamedTemporaryFile()
+	open(f.name, 'w').write(i[DESCPOSITION])
+	os.system(EDITOR + ' ' + f.name)
+	ff = open(f.name)
+	g = ff.read().rstrip('\n')
+	c.execute('update issues set last_mod=? where id=' + issue, (int(time.time()),))
+	c.execute('update issues set title=? where id=' + issue, (g,))
+	cn.commit()
+
 # Command line arguments
 ARGS1 = {
 	'ls': [listIssues, 'List all open issues'], 
@@ -100,6 +116,7 @@ ARGS1 = {
 ARGS2 = {
 	'add': [newIssue, 'Add new issues'],
 	'rm': [deleteIssue, 'Delete issue'],
+	'edit': [editIssue, 'Edit issue'],
 	'+': [upVoteIssue, 'Up vote issue'],
 	'-': [downVoteIssue, 'Down vote issue']
 	#'push': [pushCommits, 'Push committed changes']
