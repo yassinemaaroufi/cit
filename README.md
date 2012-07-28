@@ -1,4 +1,8 @@
 cit
 ===
 
-command line issue tracker
+Command line Issue Tracker
+
+
+Author:  Yassine Maaroufi - <yassinemaaroufi@gmail.com>
+Distributed under GPLv3 - http://www.gnu.org/copyleft/gpl.html
