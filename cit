@@ -1,0 +1,120 @@
+#!/usr/bin/python
+
+'''
+cit - Console Issue Tracker
+Copyright (C) 2011 Yassine Maaroufi - <yassinemaaroufi@mibian.net>
+Distributed under GPLv3 - http://www.gnu.org/copyleft/gpl.html
+'''
+
+import os, os.path, sqlite3, time, tempfile, urllib
+from os.path import expanduser, exists
+from sys import argv
+
+APPNAME = 'cit'
+DBNAME = '.' + APPNAME
+
+# Position in DB
+IDPOSITION = 0
+PTSPOSITION = 5
+DESCPOSITION = 6
+
+# Version control
+VCS = 'git'
+
+def timeI(x):
+	return time.strftime("%d %b %Y @ %H:%M", time.localtime(int(x)))
+
+def connectDB():
+	cn = sqlite3.connect(DBNAME)
+	c = cn.cursor()
+	return (cn, c)
+
+def initTracker():
+	(cn, c) = connectDB()
+	try:
+		c.execute('create table issues (id, date_create, date_state, last_mod, state, pts, title, details)')
+		print('Tracker up')
+		cn.commit()
+	except: print('Tracker already exists')
+
+def commitChanges():
+	os.system(VCS + ' add ' + DBNAME)
+	os.system(VCS + ' commit -m "Committing Issues"')
+
+def pushCommits(path):
+	os.system(VCS + ' push ' + path)
+
+# (project name, description, tag)
+def newIssue(description):
+	(cn, c) = connectDB()
+	c.execute('select max(id) from issues')
+	i = c.fetchone()[0]
+	if i == None: i = 0
+	else: i += 1
+	t = int(time.time())
+	c.execute('insert into issues values (?,?,?,?,?,?,?,?)', (i,t,t,t,1,0,description,''))
+	print('Created Issue No. ' + str(i))
+	cn.commit()
+
+def deleteIssue(x):
+	(cn, c) = connectDB()
+	c.execute('delete from issues where id='+x)
+	print('Issue Deleted')
+	cn.commit()
+
+def listIssues():
+	(cn, c) = connectDB()
+	c.execute('select * from issues where state=1 order by pts, id')
+	os.system('clear')
+	k = 0
+	for i in c:
+		se = '' if k % 2 == 0 else "\033[90m"
+		ss = '' if k % 2 == 0 else "\033[0m"
+		print(se + '   '.join([str(i[IDPOSITION]).rjust(4), str(i[PTSPOSITION]).rjust(3), i[DESCPOSITION]]) + ss)
+		k += 1
+	print('   '.join(['-'*4, '-'*3, '-'*17]))
+	print('   '.join(['id'.center(4),'pts','description']))
+
+def voteIssue(direction, issue):
+	(cn, c) = connectDB()
+	c.execute('update issues set last_mod=? where id=' + issue, (int(time.time()),))
+	c.execute('select pts from issues where id = ' + issue)
+	r = [int(i[IDPOSITION]) for i in c][0]
+	r += 1 if direction == '+' else -1
+	c.execute('update issues set pts=? where id=' + issue, (r,))
+	print('Issue Voted ' + direction + '1')
+	cn.commit()
+
+def upVoteIssue(issue):
+	voteIssue('+', issue)
+
+def downVoteIssue(issue):
+	voteIssue('-', issue)
+
+# Command line arguments
+ARGS1 = {
+	'ls': [listIssues, 'List all open issues'], 
+	'init': [initTracker, 'Initialize the issue tracker'],
+	'commit': [commitChanges, 'Commit changes']
+	}
+ARGS2 = {
+	'add': [newIssue, 'Add new issues'],
+	'rm': [deleteIssue, 'Delete issue'],
+	'+': [upVoteIssue, 'Up vote issue'],
+	'-': [downVoteIssue, 'Down vote issue']
+	#'push': [pushCommits, 'Push committed changes']
+	}
+
+def printHelp():
+	print('\nUsage: ' + APPNAME + ' option argument')
+	print('Options list:')
+	for i in ARGS1: print(' '*4 + APPNAME + ' ' + i.ljust(20) + ARGS1[i][1])
+	print()
+	for i in ARGS2: print(' '*4 + APPNAME + ' ' + (i + ' issue-id').ljust(20) + ARGS2[i][1])
+	exit()
+
+# Command line arguments handling
+if len(argv) == 2 and argv[1] in ARGS1: ARGS1[argv[1]][0]()
+elif len(argv) == 3 and argv[1] in ARGS2: ARGS2[argv[1]][0](argv[2])
+else: printHelp()
+
