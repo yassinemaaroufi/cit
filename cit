@@ -68,7 +68,6 @@ def deleteIssue(x):
 def listIssues():
 	(cn, c) = connectDB()
 	c.execute('select * from issues where state=1 order by pts, id')
-	os.system('clear')
 	k = 0
 	for i in c:
 		se = '' if k % 2 == 0 else "\033[90m"
