@@ -9,7 +9,7 @@ Author:  Yassine Maaroufi - <yassinemaaroufi@gmail.com>
 Distributed under GPLv3 - http://www.gnu.org/copyleft/gpl.html
 
 
-###How to:
+###Getting started:
 
     cit init                      # To initialize the issue tracker
 
