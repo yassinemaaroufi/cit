@@ -110,20 +110,20 @@ ARGS1 = {
     'init': [initTracker, 'Initialize the issue tracker']
     }
 ARGS2 = {
-    'add': [newIssue, 'Add new issues'],
-    'rm': [deleteIssue, 'Delete issue'],
-    'edit': [editIssue, 'Edit issue'],
-    'close': [closeIssue, 'Close issue'],
-    '+': [upVoteIssue, 'Up vote issue'],
-    '-': [downVoteIssue, 'Down vote issue']
+    'add': [newIssue, 'Add new issues', 'issue-text'],
+    'rm': [deleteIssue, 'Delete issue', 'issue-id'],
+    'edit': [editIssue, 'Edit issue', 'issue-id'],
+    'close': [closeIssue, 'Close issue', 'issue-id'],
+    '+': [upVoteIssue, 'Up vote issue', 'issue-id'],
+    '-': [downVoteIssue, 'Down vote issue', 'issue-id']
     }
 
 def printHelp():
     print('\nUsage: ' + APPNAME + ' option argument')
     print('Options list:')
     for i in ARGS1: print(' '*4 + APPNAME + ' ' + i.ljust(20) + ARGS1[i][1])
-    print()
-    for i in ARGS2: print(' '*4 + APPNAME + ' ' + (i + ' issue-id').ljust(20) \
+    print('')
+    for i in ARGS2: print(' '*4 + APPNAME + ' ' + (i + ' ' + ARGS2[i][2]).ljust(20) \
             + ARGS2[i][1])
     exit()
 
